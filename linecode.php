@@ -13,17 +13,24 @@ function whiteSpacesSplit($str, $sepReplacement=" ")
 }
 
 
-function extractInfos($error_str, $_clean=false)
+function extractInfos($error_str)
 {
+
+    $_clean=false; //Default is raw HTML
 
     $sepfile=" in <b>";
     $sepline="</b> on line <b>";
-    if($_clean)
-    {
+   
+
+    $parts = explode($sepline,$error_str);  
+    if(count($parts)==1)
+    { 
+        //not found, might be text (with no tags)
+        $sepline="";
         $sepfile=" in ";
-        $sepline=" on line ";        
+        $sepline=" on line ";   
+        $parts = explode($sepline,$error_str);
     }
-    $parts = explode($sepline,$error_str);
     if(count($parts)>=2)
     {
         $fileparts = explode($sepfile, trim($parts[0]) );
@@ -52,10 +59,19 @@ function extractInfos($error_str, $_clean=false)
     return false;
 }//extractInfos
 
-$content=file_get_contents("data/example.html");
- 
 
-$infos = extractInfos(($content), $_clean=false);
+
+//   data/example.html 
+// <br />
+// <b>Warning</b>:  Undefined array key 0 in <b>/home/path/test.php</b> on line <b>17</b><br />
+
+//   data/example.txt 
+// <br />
+// <b>Warning</b>:  Undefined array key 0 in <b>/home/path/test.php</b> on line <b>17</b><br />
+
+$content=file_get_contents("data/example.txt");
+
+$infos = extractInfos(($content));
 
 
 echo "results = ";var_dump($infos);
