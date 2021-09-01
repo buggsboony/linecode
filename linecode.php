@@ -1,7 +1,6 @@
-<?php
 #!/bin/env php
+<?php
 require_once("common.php");
-echoLnColor("Hellow world ", ConsoleColors::CYAN);
 
 
 
@@ -61,6 +60,35 @@ function extractInfos($error_str)
 
 
 
+//configuration file :
+//create config dir
+$path="./config";
+if(!is_dir( $path ) )
+{ 
+    echoLnColor("Create config folder", ConsoleColors::CYAN);
+    return mkdir($path);
+}
+
+$configFile="$path/linecode.json";
+if( ! file_exists($configFile) )
+{
+  $defaultContent='
+  {  
+    "alias":[
+      "/var/www/vhosts/MY_WEBSITE1":"c:/user/me/Documents/localpath/MY_WEBSITE1",
+      "/var/www/vhosts/MY_WEBSITE2":"c:/user/me/Documents/localpath/MY_WEBSITE2"
+         ]
+  }
+  ';
+  file_put_contents($configFile,$defaultContent);  
+  echoLnColor("'$configFile' has been created", ConsoleColors::LYELL);
+}
+exec("kate $configFile");
+
+$configContent=file_get_contents($configFile);
+$config = json_decode($configContent);
+var_dump( $config );
+die("config");
 //   data/example.html 
 // <br />
 // <b>Warning</b>:  Undefined array key 0 in <b>/home/path/test.php</b> on line <b>17</b><br />
