@@ -97,7 +97,8 @@ $config = json_decode($configContent);
 // <b>Warning</b>:  Undefined array key 0 in <b>/home/path/test.php</b> on line <b>17</b><br />
 
 //TEst avec un fichier fictif
-$content=file_get_contents("data/example.txt");
+//$content=file_get_contents("data/example_remote.txt"); OK Remplacement ok
+$content=file_get_contents("data/example_local.html"); //Example local ok
 //echo "content:\n";var_dump($content);
 $infos = extractInfos($content);
 //Effectuer le remplacement par alias si nécessaire
@@ -105,12 +106,16 @@ if(! property_exists( $config ,"alias") ) $config->alias=array();
 //Récupérer par les arguments 
 //$config->alias= $argv[];
 
-foreach( $config->alias as $remote_path=>$local_path):
+foreach( $config->alias as $al):
     $local_file = $infos["file"];
-    var_dump($local_path); die("localfile");
+    $remote_path=$al[0];
+    $local_path =$al[1];  
     if(startsWith($infos["file"],$remote_path) )
-    { //Matches remote website path      
-        $local_file = str_replace($remote_path,$local_path,$infos["file"]);       
+    { //Matches remote website path  
+      $local_file = str_replace($remote_path,$local_path,$infos["file"]);       
+      // var_dump($infos); 
+      // echo " Remplacement :";var_dump($local_file);
+      // die("remote path=".$remote_path);    
         break;
     }
 endforeach;
