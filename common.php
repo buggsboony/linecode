@@ -48,4 +48,11 @@ function echoLnColor($str, $col, $NL=true)
    if($NL)echo "\n";
    echo ConsoleColors::DEF;
 }
+
+
+
+
+//startsWith et endsWith
+function startsWith($haystack, $needle) { $length = strlen($needle); return (substr($haystack, 0, $length) === $needle); } 
+function endsWith($haystack, $needle) { $length = strlen($needle); if ($length == 0) { return true; } return (substr($haystack, -$length) === $needle); }
 ?>

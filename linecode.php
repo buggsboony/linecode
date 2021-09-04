@@ -12,9 +12,8 @@ function whiteSpacesSplit($str, $sepReplacement=" ")
 }
 
 
-function extractInfos($error_str)
-{
-
+function extractInfos($error_str )
+{    
     $_clean=false; //Default is raw HTML
 
     $sepfile=" in <b>";
@@ -33,9 +32,9 @@ function extractInfos($error_str)
     if(count($parts)>=2)
     {
         $fileparts = explode($sepfile, trim($parts[0]) );
-        echo "FILE parts=";var_dump($fileparts);    
+        //echo "FILE parts=";var_dump($fileparts);    
         $numberParts = whiteSpacesSplit(trim($parts[1]));
-        echo "number parts="; var_dump( $numberParts);
+        //echo "number parts="; var_dump( $numberParts);
         if(count($numberParts)>=1)
         {
             $line_number = $numberParts[0];
@@ -83,12 +82,12 @@ if( ! file_exists($configFile) )
   file_put_contents($configFile,$defaultContent);  
   echoLnColor("'$configFile' has been created", ConsoleColors::LYELL);
 }
-exec("kate $configFile");
 
 $configContent=file_get_contents($configFile);
 $config = json_decode($configContent);
-var_dump( $config );
-die("config");
+//var_dump( $config );
+//die("config");
+
 //   data/example.html 
 // <br />
 // <b>Warning</b>:  Undefined array key 0 in <b>/home/path/test.php</b> on line <b>17</b><br />
@@ -97,13 +96,33 @@ die("config");
 // <br />
 // <b>Warning</b>:  Undefined array key 0 in <b>/home/path/test.php</b> on line <b>17</b><br />
 
+//TEst avec un fichier fictif
 $content=file_get_contents("data/example.txt");
+//echo "content:\n";var_dump($content);
+$infos = extractInfos($content);
+//Effectuer le remplacement par alias si nécessaire
+if(! property_exists( $config ,"alias") ) $config->alias=array();
+//Récupérer par les arguments 
+//$config->alias= $argv[];
 
-$infos = extractInfos(($content));
+foreach( $config->alias as $remote_path=>$local_path):
+    $local_file = $infos["file"];
+    var_dump($local_path); die("localfile");
+    if(startsWith($infos["file"],$remote_path) )
+    { //Matches remote website path      
+        $local_file = str_replace($remote_path,$local_path,$infos["file"]);       
+        break;
+    }
+endforeach;
 
-
-echo "results = ";var_dump($infos);
-
+//echo "results = "; var_dump($infos);
+if($infos)
+{
+  
+  $command = "code --goto ".$local_file.":".$infos["line"];
+  //Exécuter vscode 
+  exec($command,$output,$res_code);
+}
 exit;
 
 $command=

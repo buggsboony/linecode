@@ -8,9 +8,10 @@
             "type": "shell",
             "command": "php",
             "args": [
-              "${file}"
+                "${file}"
             ],
-            "group": "build",           
+            "group": "build",
+            "problemMatcher": []
         }
     ]
 }
