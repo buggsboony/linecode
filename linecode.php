@@ -2,7 +2,7 @@
 <?php
 require_once("common.php");
 
-
+$APPNAME="linecode";
 
 function whiteSpacesSplit($str, $sepReplacement=" ")
 {
@@ -57,36 +57,50 @@ function extractInfos($error_str )
     return false;
 }//extractInfos
 
+//get home directory p
+$homeDir=getHomeDir();
 
+ //case windows, use powershell
+ if(php_os()=="WIN")
+ {
+   echo "homedir=";var_dump( $homeDir);
+    die("windows , please configure config file destination");
+    //create config dir
+    //$config_filename=$path.DIRECTORY_SEPARATOR."$APPNAME.json";
 
+ }else
+ {
+    //create config dir
+    $path="$homeDir/.config/$APPNAME";
+    $configFile=$path.DIRECTORY_SEPARATOR."$APPNAME.json";
+ }//endif php OS
 //configuration file :
-//create config dir
-$path="./config";
+
 if(!is_dir( $path ) )
 { 
     echoLnColor("Create config folder", ConsoleColors::CYAN);
     return mkdir($path);
 }
 
-$configFile="$path/linecode.json";
+
 if( ! file_exists($configFile) )
 {
   $defaultContent='
   {  
     "alias":[
-      "/var/www/vhosts/MY_WEBSITE1":"c:/user/me/Documents/localpath/MY_WEBSITE1",
-      "/var/www/vhosts/MY_WEBSITE2":"c:/user/me/Documents/localpath/MY_WEBSITE2"
+      ["/var/www/vhosts/MY_WEBSITE1","c:/user/me/Documents/localpath/MY_WEBSITE1"],
+      ["/var/www/vhosts/MY_WEBSITE2","c:/user/me/Documents/localpath/MY_WEBSITE2"]
          ]
   }
   ';
   file_put_contents($configFile,$defaultContent);  
   echoLnColor("'$configFile' has been created", ConsoleColors::LYELL);
 }
-
 $configContent=file_get_contents($configFile);
 $config = json_decode($configContent);
-//var_dump( $config );
-//die("config");
+// var_dump( $configFile );
+// var_dump( $config );
+// die("config");
 
 //   data/example.html 
 // <br />
@@ -96,17 +110,175 @@ $config = json_decode($configContent);
 // <br />
 // <b>Warning</b>:  Undefined array key 0 in <b>/home/path/test.php</b> on line <b>17</b><br />
 
+//Temporary filename to store content
+$temp_file = sys_get_temp_dir().DIRECTORY_SEPARATOR."lincode_content.txt";
+
+//Reading parameters, récupérer les arguments :
+$help='
+  -h, --help                      Displays help on commandline options.  
+  -v, --version                   Displays version information.
+  --author                        Afficher les informations sur l\'auteur.
+  --license                       Afficher les informations sur la licence.
+                                  pour cette application.
+  --replacement, --swap,-r        Replace remote pattern with local pattern separated by a semicolon
+  --error,-e, --content           Content error to parse
+  -i                              Display graphical inputbox
+  --editor                        Specify editor executable command. Default is "code --goto"
+
+  Examples :
+  linecode --replacement "remote_path:local_path;remote2:local2" -i  #Show Inputbox where to paste error
+  linecode --swap "remote_path:local_path" --error "<br/>Error line:xx</b>"
+  linecode --error "<br/>erreur line:xx</b>" --editor "code"
+  ';
+$editor="code --goto";
+$replacement=false;
+$gui=false;
+$content=null;
+
+for($i=0; $i<count($argv); $i++)
+{
+    $arg = $argv[$i];
+    if( ($arg === "-error" ) || ( $arg === "-e" ) || ( $arg === "--content" ) )
+    {
+        $content=($argv[$i+1] );
+    }   
+    if(  ($arg === "--replacement") || ($arg === "--swap") || ($arg === "-r") )
+    {
+        $replacement=($argv[$i+1] );
+    }  
+
+    if(  ($arg === "--editor") )
+    {
+        $editor=intval($argv[$i+1] );
+    }    
+
+    if(  ($arg === "-i")  )
+    {
+        $gui=true;
+    }   
+    if(  ($arg === "-h") ||($arg === "--help")  )
+    {
+        
+        echo "Options:\n";
+        echoLnColor($help,ConsoleColors::ORAN);
+        exit;
+    }    
+}
+
+
+//Case there is no content passed, launch GUI
+if( !trim($content) )
+{
+  $gui=true;
+}
+
+//Delete temp file:
+if(file_exists($temp_file) ) unlink($temp_file);
+
+
+if($gui)
+{
+    //case windows, use powershell
+    if(php_os()=="WIN")
+    {
+
+    }else
+    {
+      //http://xpt.sourceforge.net/techdocs/language/gtkdialog/gtkde02-GtkdialogExamples/single/
+      //case Linux or other, use gtkdialog
+            $gtkdialog='export MAIN_DIALOG=\'
+            <vbox>
+              <frame Paste PHP error or warning here>       
+                <edit accepts-tab="false">          
+                  <variable>CONTENT</variable>                  
+                  <width>320</width>
+                  <height>120</height>                
+                </edit>
+              </frame>
+              <hbox>
+              <button ok>  
+              <action>echo "$CONTENT">'.$temp_file.' </action>            
+              <action type="exit">OK</action> 
+              </button>
+              <button cancel></button>
+              </hbox>
+            </vbox>
+            \'
+ 
+            gtkdialog --program=MAIN_DIALOG --center';
+
+        
+ 
+        exec($gtkdialog,$results,$iRes);        
+        //var_dump( $results); die("pause");
+
+        //parse gtkdialog results
+        $exit=false;
+        foreach( $results as $result):  
+          parse_str($result,$output);        
+          if( array_key_exists($key="EXIT",$output) )
+          {
+             //remove surrounding quotes
+             $exit = trim( $output[$key] ,'"');           
+          }
+        endforeach;
+          $exit = strtolower( $exit );
+        if( ($exit == "cancel") || ($exit == "abort") )
+        {
+            echoLnColor("Oups: $exit",ConsoleColors::RED);
+            exit;
+        }
+              
+        if(file_exists($temp_file))
+        {
+            $content = file_get_contents($temp_file);
+        }else
+        {
+            echoLnColor("Oups, no content",ConsoleColors::RED);
+            exit;
+        }        
+        // array(6) {
+        //   [0]=>
+        //   string(21) "Checkbox is true now."
+        //   [1]=>
+        //   string(23) "ANOTHER_CHECKBOX="true""
+        //   [2]=>
+        //   string(15) "CHECKBOX="true""
+        //   [3]=>
+        //   string(26) "ENTRY="Text in thee entry""
+        //   [4]=>
+        //   string(11) "OKBUTTON="""
+        //   [5]=>
+        //   string(9) "EXIT="OK""
+        // }  
+    }
+}//if gui
+
+
+
 //TEst avec un fichier fictif
 //$content=file_get_contents("data/example_remote.txt"); OK Remplacement ok
-$content=file_get_contents("data/example_local.html"); //Example local ok
+//$content=file_get_contents("data/example_local.html"); //Example local ok
 //echo "content:\n";var_dump($content);
 $infos = extractInfos($content);
 //Effectuer le remplacement par alias si nécessaire
 if(! property_exists( $config ,"alias") ) $config->alias=array();
 //Récupérer par les arguments 
 //$config->alias= $argv[];
+//Get command line replacement if any and merge to aliases
+$aliases = $config->alias;
+if($replacement)
+{
+    $paires=explode(";",$replacement);
+    foreach($paires as $pair)
+    {
+      $exploded = explode(":",$pair);              
+      $aliases[] = $exploded;
+    }
+}//if replacement
+//var_dump( $aliases ); die("alioas");
 
-foreach( $config->alias as $al):
+foreach( $aliases as $al):
     $local_file = $infos["file"];
     $remote_path=$al[0];
     $local_path =$al[1];  
@@ -124,9 +296,12 @@ endforeach;
 if($infos)
 {
   
-  $command = "code --goto ".$local_file.":".$infos["line"];
+  $command = $editor." ".$local_file.":".$infos["line"];
+  echoLnColor($command,ConsoleColors::CYAN);
   //Exécuter vscode 
   exec($command,$output,$res_code);
+  echo("Result Code: ");
+  var_dump($res_code);
 }
 exit;
 

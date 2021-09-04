@@ -55,4 +55,26 @@ function echoLnColor($str, $col, $NL=true)
 //startsWith et endsWith
 function startsWith($haystack, $needle) { $length = strlen($needle); return (substr($haystack, 0, $length) === $needle); } 
 function endsWith($haystack, $needle) { $length = strlen($needle); if ($length == 0) { return true; } return (substr($haystack, -$length) === $needle); }
+
+
+//2021-09-04 17:19:04 - PHP get home directory
+function getHomeDir()
+{
+      return $_SERVER['HOME'];
+}
+
+
+function php_os()
+{
+   return strtoupper(substr(PHP_OS, 0, 3));
+}
+//2021-08-14 09:51:15 - Detect server OS with PHP_OS
+$OS_WIN=null;
+if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+   $OS_WIN=true;
+} else {
+   $OS_WIN=false;
+}
+
+
 ?>
