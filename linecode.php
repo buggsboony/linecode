@@ -99,7 +99,7 @@ if( ! file_exists($configFile) )
   }
   ';
   file_put_contents($configFile,$defaultContent);  
-  echoLnColor("'$configFile' has been created", ConsoleColors::YELL);
+  echoLnColor("'$configFile' has been created", ConsoleColors::ORAN);
 }//end create config file
 
 //Read config file
