@@ -63,11 +63,12 @@ $homeDir=getHomeDir();
  //case windows, use powershell
  if(php_os()=="WIN")
  {
-   echo "homedir=";var_dump( $homeDir);
-    die("WINDOWS , please configure config file destination");
+    $local_data=$_SERVER["LOCALAPPDATA"]; // string(28) "C:\Users\john\AppData\Local"
+    // echo "local_data=";var_dump( $local_data);
+    // die("WINDOWS , please configure config file destination");
     //create config dir
-    //$config_filename=$path.DIRECTORY_SEPARATOR."$APPNAME.json";
-
+    $path=$local_data.DIRECTORY_SEPARATOR.$APPNAME;
+    $configFile=$path.DIRECTORY_SEPARATOR."$APPNAME.json";
  }else
  {
     //create config dir
@@ -78,8 +79,9 @@ $homeDir=getHomeDir();
 
 if(!is_dir( $path ) )
 { 
-    echoLnColor("Create config folder", ConsoleColors::CYAN);
-    return mkdir($path);
+    echoColor("Create config folder: ", ConsoleColors::CYAN);
+    echoLn("'$path'");
+    $created = mkdir($path);
 }
 
 
@@ -94,8 +96,10 @@ if( ! file_exists($configFile) )
   }
   ';
   file_put_contents($configFile,$defaultContent);  
-  echoLnColor("'$configFile' has been created", ConsoleColors::LYELL);
-}
+  echoLnColor("'$configFile' has been created", ConsoleColors::YELL);
+}//end create config file
+
+//Read config file
 $configContent=file_get_contents($configFile);
 $config = json_decode($configContent);
 // var_dump( $configFile );
@@ -181,7 +185,9 @@ if($gui)
     //case windows, use powershell
     if(php_os()=="WIN")
     {
-
+        $content=winMultilineTextBox("Label text here","title caption","default content");
+        die($content);
+//winNotif("This is php notif", "PHP title");
     }else
     {
       //http://xpt.sourceforge.net/techdocs/language/gtkdialog/gtkde02-GtkdialogExamples/single/
