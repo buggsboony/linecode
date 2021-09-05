@@ -8,6 +8,4 @@
 set phpfile=%~dp0\linecode.php
 set phppath=php
 
-echo "--------------"
 %phppath% "%phpfile%" %*
-echo "--------------"

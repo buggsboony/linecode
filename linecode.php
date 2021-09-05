@@ -59,10 +59,13 @@ function extractInfos($error_str )
 
 //get home directory
 $homeDir=getHomeDir();
-
+$open_com="xdg-open";
+$OS="LIN";
  //case windows, use powershell
  if(php_os()=="WIN")
- {
+ {  
+   $OS="WIN";
+   $open_com="explorer";
     $local_data=$_SERVER["LOCALAPPDATA"]; // string(28) "C:\Users\john\AppData\Local"
     // echo "local_data=";var_dump( $local_data);
     // die("WINDOWS , please configure config file destination");
@@ -128,9 +131,10 @@ $help='
   --error,-e, --content           Content error to parse
   -i                              Display graphical inputbox
   --editor                        Specify editor executable command. Default is "code --goto"
-
+  --config,-c                     Opens config directory
+  --notif                         Success Notif
   Examples :
-  linecode --replacement "remote_path:local_path;remote2:local2" -i  #Show Inputbox where to paste error
+  linecode --replacement "remote_path>local_path;remote2>local2" -i  #Show Inputbox where to paste error
   linecode --swap "remote_path:local_path" --error "<br/>Error line:xx</b>"
   linecode --error "<br/>erreur line:xx</b>" --editor "code"
   ';
@@ -138,6 +142,7 @@ $editor="code --goto";
 $replacement=false;
 $gui=false;
 $content=null;
+$successNotif = false;
 
 for($i=0; $i<count($argv); $i++)
 {
@@ -154,7 +159,19 @@ for($i=0; $i<count($argv); $i++)
     if(  ($arg === "--editor") )
     {
         $editor=intval($argv[$i+1] );
-    }    
+    } 
+    
+    if(  ($arg === "--editor") )
+    {
+       if($OS=="WIN") $successNotif=true;
+    } 
+    
+    if(  ($arg === "--config") || ($arg === "-c")  )
+    {
+      //open config directory
+      exec("$open_com \"$path\"");
+      exit;
+    } 
 
     if(  ($arg === "-i")  )
     {
@@ -182,19 +199,18 @@ if(file_exists($temp_file) ) unlink($temp_file);
 
 if($gui)
 {
+    $label_text="Paste PHP error or warning here";
     //case windows, use powershell
     if(php_os()=="WIN")
     {
-        $content=winMultilineTextBox("Label text here","title caption","default content");
-        die($content);
-//winNotif("This is php notif", "PHP title");
+        $content=winMultilineTextBox($label_text,$APPNAME);             
     }else
     {
       //http://xpt.sourceforge.net/techdocs/language/gtkdialog/gtkde02-GtkdialogExamples/single/
       //case Linux or other, use gtkdialog
             $gtkdialog='export MAIN_DIALOG=\'
             <vbox>
-              <frame Paste PHP error or warning here>       
+              <frame '.$label_text.'>       
                 <edit accepts-tab="false">          
                   <variable>CONTENT</variable>                  
                   <width>320</width>
@@ -278,7 +294,7 @@ if($replacement)
     $paires=explode(";",$replacement);
     foreach($paires as $pair)
     {
-      $exploded = explode(":",$pair);              
+      $exploded = explode(">",$pair);              
       $aliases[] = $exploded;
     }
 }//if replacement
@@ -291,6 +307,7 @@ foreach( $aliases as $al):
     if(startsWith($infos["file"],$remote_path) )
     { //Matches remote website path  
       $local_file = str_replace($remote_path,$local_path,$infos["file"]);       
+ 
       // var_dump($infos); 
       // echo " Remplacement :";var_dump($local_file);
       // die("remote path=".$remote_path);    
@@ -301,13 +318,20 @@ endforeach;
 //echo "results = "; var_dump($infos);
 if($infos)
 {
-  
+  //replace slashes with backslashes:
+  if($OS=="WIN")
+  {
+    $local_file=str_replace("/","\\", $local_file);
+  }
   $command = $editor." ".$local_file.":".$infos["line"];
   echoLnColor($command,ConsoleColors::CYAN);
   //Exécuter vscode 
   exec($command,$output,$res_code);
-  echo("Result Code: ");
-  var_dump($res_code);
+  echo("Result Code: ");  var_dump($res_code);
+  if($res_code==0)
+  {
+    if($successNotif)winNotif("linecode opens '$local_file' ", $APPNAME." success.");
+  }
 }
 exit;
 
