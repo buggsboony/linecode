@@ -151,7 +151,7 @@ for($i=0; $i<count($argv); $i++)
     {
         $content=($argv[$i+1] );
     }   
-    if(  ($arg === "--replacement") || ($arg === "--swap") || ($arg === "-r") )
+    if(  ($arg === "--replacement") || ($arg === "--swap") || ($arg === "--replace") || ($arg === "-r") )
     {
         $replacement=($argv[$i+1] );
     }  
