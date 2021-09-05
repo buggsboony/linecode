@@ -58,8 +58,18 @@ function endsWith($haystack, $needle) { $length = strlen($needle); if ($length =
 
 
 //2021-09-04 17:19:04 - PHP get home directory
-function getHomeDir()
+function getHomeDir($detectOS)
 {
+   //Windows
+   ["HOMEDRIVE"]=>
+   string(2) "C:"
+   ["HOMEPATH"]=>
+   string(12) "\Users\boony"
+   ["LOCALAPPDATA"]=>
+   string(28) "C:\Users\boony\AppData\Local"
+   ["USERPROFILE"]=>
+  string(14) "C:\Users\boony"
+
       return $_SERVER['HOME'];
 }
 

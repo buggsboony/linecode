@@ -1,7 +1,7 @@
 #!/bin/env php
 <?php
 require_once("common.php");
-
+//var_dump( $argv );die("argv!");
 $APPNAME="linecode";
 
 function whiteSpacesSplit($str, $sepReplacement=" ")
@@ -57,14 +57,14 @@ function extractInfos($error_str )
     return false;
 }//extractInfos
 
-//get home directory p
+//get home directory
 $homeDir=getHomeDir();
 
  //case windows, use powershell
  if(php_os()=="WIN")
  {
    echo "homedir=";var_dump( $homeDir);
-    die("windows , please configure config file destination");
+    die("WINDOWS , please configure config file destination");
     //create config dir
     //$config_filename=$path.DIRECTORY_SEPARATOR."$APPNAME.json";
 
