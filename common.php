@@ -10,6 +10,8 @@ class ConsoleColors
   const GREEN="\033[0;32m"; #echo "$_LRED'$tasks' does not exists.$_DEF\n";
   const LGREEN="\033[1;32m";
   const WHITE="\033[1;37m";
+  const LBLUE="\033[1;34m"; //Turquoise bold
+  const BLUE="\033[0;34m";  //Turquoise thin
   const LYELL="\033[1;33m";  
   const LRED="\033[1;31m";
   const MAG="\033[0;35m";
